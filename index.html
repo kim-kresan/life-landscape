@@ -20,13 +20,13 @@
 				--border: #2e3f32;
 				--text0: #e8f0e9;
 				--text1: #a8c0ab;
-				--text2: #6a8a6e;
-				--text3: #3d5440;
-				--green: #4caf72;
-				--green2: #2d7a4f;
-				--pink: #e8607a;
-				--pink-bg: #3a1520;
-				--gold: #c8a84b;
+				--text2: #65956b;
+				--text3: #62ac6c;
+				--green: #21e86d;
+				--green2: #0a9e5e;
+				--pink: #ff6581;
+				--pink-bg: #6c1932;
+				--gold: #efd381;
 				--r-md: 9px;
 				--r-lg: 14px;
 				--safe-top: env(safe-area-inset-top, 0px);
@@ -58,7 +58,7 @@
 				padding: 1rem 1rem 2rem;
 			}
 			.app-title {
-				font-family: "DM Serif Display", serif;
+				font-family: "DM Sans", sans-serif;
 				font-size: 22px;
 				font-weight: 400;
 				color: var(--text0);
@@ -922,7 +922,7 @@
 		<div class="app">
 			<div class="app-title">
 				Life Landscape
-				<span>your world, at a glance</span>
+				<span id="weekly-quote"></span>
 				<span class="sync-dot" id="sync-dot" title="Sync status"></span>
 			</div>
 
@@ -1149,7 +1149,13 @@
 			// ── DEFAULT DATA (used only on first load, before Sheet has any data) ──────────
 			const DEFAULT_STATE = {
 				items: [
-					{ id: 1, t: "Bake Bread", cats: ["food"], s: "any", done: false },
+					{
+						id: 1,
+						t: "Bake Bread",
+						cats: ["food"],
+						seasons: ["any"],
+						done: false,
+					},
 				],
 				goals: [
 					{
@@ -1490,12 +1496,14 @@
 				const shuffled = CATKEYS.slice().sort(() => Math.random() - 0.5);
 				const picks = [];
 				shuffled.forEach((cat) => {
-					const pool = state.items.filter(
-						(i) =>
+					const pool = state.items.filter((i) => {
+						if (!Array.isArray(i.seasons)) i.seasons = [i.s || "any"];
+						return (
 							i.cats.includes(cat) &&
 							!i.done &&
-							(i.s === "any" || i.s === season),
-					);
+							(i.seasons.includes("any") || i.seasons.includes(season))
+						);
+					});
 					if (pool.length && picks.length < 6) {
 						const p = pool[Math.floor(Math.random() * pool.length)];
 						if (!picks.find((x) => x.id === p.id))
@@ -1515,7 +1523,7 @@
       <div class="ins-cat" style="color:${p.c.color}">${p.c.label}</div>
       <div class="ins-text">${p.t}</div>
       <div class="ins-footer">
-        <span class="sb ${SC[p.s]}">${SL[p.s]}</span>
+        <span style="display:flex;gap:3px;flex-wrap:wrap">${p.seasons.map((sv) => `<span class="sb ${SC[sv]}">${SL[sv]}</span>`).join("")}</span>
         <button class="ins-done-btn" id="ins-done-${idx}" onclick="inspireMarkDone(${idx})">✓ did this</button>
       </div>
     </div>`;
@@ -1569,6 +1577,10 @@
 				.map((i) => {
 					const extra = i.cats.filter((k) => k !== cat);
 					const expanded = expandedItems.has(i.id);
+					if (!Array.isArray(i.seasons)) i.seasons = [i.s || "any"];
+					const seasonBadges = i.seasons
+						.map((sv) => `<span class="sb ${SC[sv]}">${SL[sv]}</span>`)
+						.join(" ");
 					return `<div class="lib-item">
           <div class="lib-item-row">
             <div class="lib-check${i.done ? " done" : ""}" onclick="toggleDone(${i.id})">${i.done ? "✓" : ""}</div>
@@ -1580,7 +1592,7 @@
             </div>`
 								: ""
 						}
-            <span class="sb ${SC[i.s]}" onclick="toggleExpand(${i.id})">${SL[i.s]}</span>
+            <span onclick="toggleExpand(${i.id})" style="display:flex;gap:3px;flex-wrap:wrap;cursor:pointer">${seasonBadges}</span>
             <button class="del-item" onclick="deleteItem(${i.id})">✕</button>
           </div>
           ${
@@ -1595,9 +1607,11 @@
 						).join("")}
             <span class="meta-sep">·</span>
             ${SEASONS.map(
-							(sv) => `<button class="meta-chip${i.s === sv ? " active" : ""}"
-              style="${i.s === sv ? "border-color:var(--green2);color:var(--green)" : ""}"
-              onclick="setItemSeason(${i.id},'${sv}')">${SL[sv]}</button>`,
+							(
+								sv,
+							) => `<button class="meta-chip${i.seasons.includes(sv) ? " active" : ""}"
+              style="${i.seasons.includes(sv) ? "border-color:var(--green2);color:var(--green)" : ""}"
+              onclick="toggleItemSeason(${i.id},'${sv}')">${SL[sv]}</button>`,
 						).join("")}
           </div>`
 							: ""
@@ -1634,12 +1648,22 @@
 				scheduleSave();
 				renderLibrary(document.querySelector(".lib-search")?.value || "");
 			}
-			function setItemSeason(id, s) {
+			function toggleItemSeason(id, s) {
 				const it = state.items.find((i) => i.id === id);
-				if (it) {
-					it.s = s;
-					scheduleSave();
+				if (!it) return;
+				if (!Array.isArray(it.seasons)) it.seasons = [it.s || "any"];
+				if (s === "any") {
+					it.seasons = ["any"];
+				} else {
+					it.seasons = it.seasons.filter((x) => x !== "any");
+					if (it.seasons.includes(s)) {
+						it.seasons = it.seasons.filter((x) => x !== s);
+						if (!it.seasons.length) it.seasons = ["any"];
+					} else {
+						it.seasons = [...it.seasons, s];
+					}
 				}
+				scheduleSave();
 				renderLibrary(document.querySelector(".lib-search")?.value || "");
 			}
 			function deleteItem(id) {
@@ -1651,11 +1675,12 @@
 			function addItem() {
 				const t = document.getElementById("add-text").value.trim();
 				if (!t) return;
+				const s = document.getElementById("add-season").value;
 				state.items.push({
 					id: state.nextId++,
 					t,
 					cats: [document.getElementById("add-cat").value],
-					s: document.getElementById("add-season").value,
+					seasons: s === "any" ? ["any"] : [s],
 					done: false,
 				});
 				document.getElementById("add-text").value = "";
@@ -1772,6 +1797,99 @@
 					renderGoals();
 				}
 			}
+
+			// ── WEEKLY QUOTE ──────────────────────────────────────────────────────────────
+			const QUOTES = [
+				"Do no harm. Take no shit. Above all, be kind.",
+				"Who benefits?",
+				"Don't save things for special occasions.",
+				"Live your life as if it's the second time around, and you're trying to get it right this time.",
+				"Not a single day ahead, nor a single day behind.",
+				"You can pull over whenever you want!",
+				"Does this support the life I'm trying to create?",
+				"Whatever you aren't changing, you're choosing.",
+				"If you don't change direction soon, you'll end up where you're headed.",
+				"You must do whatever you can't not do.",
+				"Chop wood carry water motherfucker!",
+				"Make use of your free will.",
+				"Emotions are information, not instruction.",
+				"There is something coming — everything matters; guard your heart and watch the wind.",
+				"It's never too late to begin being the things you're afraid you're not.",
+				"The future isn't coming at us, but from us.",
+				"I don't understand any of it, but I love all of it.",
+				"Building a life rather than chasing a dream.",
+				"The horrors persist but so do I.",
+				"People who have no hopes are easy to control.",
+				"I'm building a cathedral.",
+				"Putting a good line together.",
+				"Am I behaving like a program?",
+				"It sure is something, this being alive.",
+				"Heaven has always been beneath our feet.",
+				"A certain illicit joy — no burden of proof.",
+				"I don't need $300 pants to feel alive.",
+				"The duality of fire — the cozy hearth and the burning passion.",
+				"'fraid not, I'm still wicked bad.",
+				"Put it in reverse, Terry!",
+				"Unacceptable visual injury.",
+				"Be old or be dead.",
+				"Nice going, RON.",
+				"Invoke the citrus.",
+				"I am the eye of the storm.",
+				"Mountains so epic you have to turn the music down.",
+				"Knowledge is just a rumor until it lives in the body.",
+				"I refuse to elaborate because I am unable.",
+				"You never know what's at the bottom of the pool.",
+				"Change the story.",
+				"Don't Google an opinion, form your own.",
+				"What is this, some kind of plot point?",
+				"Be the plot twist in your own life.",
+				"Control the ring. Utilize the jab. Showcase the power.",
+				'"Welp... Ya know." "I do not." "Yeah me neither."',
+				"Jesus, tap in!",
+				"A crippling need to be precocious.",
+				"The hole is best controlled by some form of ritual.",
+				"Something about waterfalls activates the neurons.",
+				"If you don't plan your day, someone else will.",
+				"You can't call something a distraction unless you know what it's distracting you from.",
+				"Life is now!",
+				"Fuck all ya'll; I'm a precious human being.",
+				"While we live, let us live.",
+				"It's not too early to start enjoying yourself.",
+				"Wanton creation.",
+				"We hang on the banks of the water of life.",
+				"Our ability to disrupt ourselves is critical.",
+				"Take a moment to behold, as still skies or storms unfold.",
+				"We think we know what we're doing because we're humans and we're bipedal.",
+				"Opportunity is the gas pedal of life.",
+				"All sorrows are less with bread.",
+				"Bob Zombie.",
+				"I have this idea that landscapes are going to solve something for me.",
+				"I have achieved spherical enlightenment. Roll me into a higher state of being.",
+				"There are cathedrals everywhere, for those with eyes to see.",
+				"Balance is not a passive resting place. It takes work.",
+				"This is just content for a demographic.",
+				"A judge of common law may be an ordinary man; a good judge of a carpet MUST be a genius.",
+				"Eventually you grow up to be the kid you always were.",
+				"If we jump now, our far will be near.",
+				"Sell your cleverness and buy bewilderment.",
+				"The grass is always greener where you water it.",
+				"To love and be loved is to rest.",
+				"I'm just here to witness the sunshine.",
+				"Find a place where you won't do very much harm and stand in it for all you are worth, facing the sun.",
+				"Applesauce is fucking imperative.",
+			];
+
+			(function setWeeklyQuote() {
+				// Seed by ISO week number so it's the same all week, changes every Sunday
+				const now = new Date();
+				const jan1 = new Date(now.getFullYear(), 0, 1);
+				const week = Math.floor(
+					((now - jan1) / 86400000 + jan1.getDay() + 1) / 7,
+				);
+				const seed = now.getFullYear() * 100 + week;
+				const idx = seed % QUOTES.length;
+				document.getElementById("weekly-quote").textContent = QUOTES[idx];
+			})();
 
 			init();
 		</script>
