@@ -1209,13 +1209,15 @@
 				if (!apiUrl) return;
 				setSyncDot("saving");
 				try {
-					await fetch(apiUrl, {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ action: "save", data }),
-					});
-					setSyncDot("saved");
-					localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
+					const encoded = encodeURIComponent(JSON.stringify(data));
+					const r = await fetch(apiUrl + "?action=save&data=" + encoded);
+					const j = await r.json();
+					if (j.ok) {
+						setSyncDot("saved");
+						localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
+					} else {
+						setSyncDot("error");
+					}
 				} catch (e) {
 					setSyncDot("error");
 				}
