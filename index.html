@@ -1,0 +1,1777 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover"
+		/>
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="theme-color" content="#0f1a12" />
+		<title>Life Landscape</title>
+		<style>
+			@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap");
+			:root {
+				--bg0: #0f1a12;
+				--bg1: #162019;
+				--bg2: #1d2b20;
+				--bg3: #253028;
+				--border: #2e3f32;
+				--text0: #e8f0e9;
+				--text1: #a8c0ab;
+				--text2: #6a8a6e;
+				--text3: #3d5440;
+				--green: #4caf72;
+				--green2: #2d7a4f;
+				--pink: #e8607a;
+				--pink-bg: #3a1520;
+				--gold: #c8a84b;
+				--r-md: 9px;
+				--r-lg: 14px;
+				--safe-top: env(safe-area-inset-top, 0px);
+				--safe-bottom: env(safe-area-inset-bottom, 0px);
+			}
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+				-webkit-tap-highlight-color: transparent;
+			}
+			html {
+				height: 100%;
+				background: var(--bg0);
+			}
+			body {
+				min-height: 100%;
+				background: var(--bg0);
+				color: var(--text0);
+				font-family: "DM Sans", sans-serif;
+				font-size: 14px;
+				padding-top: var(--safe-top);
+				padding-bottom: calc(var(--safe-bottom) + 64px);
+				overscroll-behavior: none;
+			}
+			.app {
+				max-width: 560px;
+				margin: 0 auto;
+				padding: 1rem 1rem 2rem;
+			}
+			.app-title {
+				font-family: "DM Serif Display", serif;
+				font-size: 22px;
+				font-weight: 400;
+				color: var(--text0);
+				letter-spacing: -0.01em;
+				margin-bottom: 1.25rem;
+				display: flex;
+				align-items: baseline;
+				gap: 8px;
+			}
+			.app-title span {
+				font-size: 12px;
+				font-family: "DM Sans", sans-serif;
+				color: var(--text2);
+				font-weight: 400;
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+			}
+			.nav {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				display: flex;
+				border-top: 1px solid var(--border);
+				background: var(--bg1);
+				padding-bottom: var(--safe-bottom);
+				z-index: 50;
+			}
+			.nav-btn {
+				flex: 1;
+				padding: 12px 4px 10px;
+				font-size: 11px;
+				font-family: "DM Sans", sans-serif;
+				font-weight: 500;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				border: none;
+				background: none;
+				cursor: pointer;
+				color: var(--text2);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 4px;
+				transition: color 0.15s;
+			}
+			.nav-btn .ni {
+				font-size: 18px;
+				line-height: 1;
+			}
+			.nav-btn.active {
+				color: var(--green);
+			}
+			.nav-btn:hover:not(.active) {
+				color: var(--text0);
+			}
+			.panel {
+				display: none;
+			}
+			.panel.active {
+				display: block;
+			}
+			.section-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 10px;
+			}
+			.section-title {
+				font-size: 11px;
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--text2);
+			}
+			.ghost-btn {
+				font-size: 12px;
+				padding: 5px 12px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: none;
+				cursor: pointer;
+				color: var(--text1);
+				font-family: "DM Sans", sans-serif;
+				transition: all 0.15s;
+			}
+			.ghost-btn:hover {
+				background: var(--bg2);
+				color: var(--text0);
+				border-color: var(--green2);
+			}
+			/* rings */
+			.rings-grid {
+				display: grid;
+				grid-template-columns: repeat(7, 1fr);
+				gap: 5px;
+				margin-bottom: 1.5rem;
+			}
+			.ring-cell {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 3px;
+				cursor: pointer;
+				padding: 6px 2px;
+				border-radius: var(--r-md);
+				transition: background 0.1s;
+			}
+			.ring-cell:hover {
+				background: var(--bg2);
+			}
+			.ring-wrap {
+				position: relative;
+				width: 42px;
+				height: 42px;
+			}
+			.ring-wrap svg {
+				position: absolute;
+				top: 0;
+				left: 0;
+				transform: rotate(-90deg);
+			}
+			.ring-icon {
+				position: absolute;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 14px;
+			}
+			.ring-label {
+				font-size: 9px;
+				color: var(--text2);
+				text-align: center;
+				line-height: 1.2;
+			}
+			.quick-log {
+				width: 20px;
+				height: 20px;
+				border-radius: 50%;
+				border: 1px solid var(--border);
+				background: var(--bg2);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 12px;
+				color: var(--text2);
+				transition: all 0.15s;
+				margin-top: 1px;
+				user-select: none;
+			}
+			.quick-log:hover {
+				background: var(--pink-bg);
+				border-color: var(--pink);
+				color: var(--pink);
+				transform: scale(1.1);
+			}
+			/* goals */
+			.goal-card {
+				background: var(--bg1);
+				border: 1px solid var(--border);
+				border-radius: var(--r-lg);
+				padding: 0.9rem 1rem;
+				margin-bottom: 8px;
+			}
+			.goal-top {
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				margin-bottom: 6px;
+			}
+			.goal-name {
+				font-size: 14px;
+				font-weight: 500;
+				color: var(--text0);
+			}
+			.goal-meta {
+				font-size: 12px;
+				color: var(--text2);
+				margin-top: 2px;
+			}
+			.week-label {
+				font-size: 10px;
+				color: var(--text3);
+				margin-bottom: 5px;
+			}
+			.goal-pips {
+				display: flex;
+				gap: 5px;
+				margin-bottom: 8px;
+				flex-wrap: wrap;
+			}
+			.pip {
+				width: 28px;
+				height: 28px;
+				border-radius: 50%;
+				border: 1px solid var(--border);
+				background: var(--bg2);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 12px;
+				color: var(--text2);
+				user-select: none;
+				transition: all 0.15s;
+			}
+			.pip.filled {
+				border-color: var(--pink);
+				background: var(--pink);
+				color: #fff;
+			}
+			.pip:hover:not(.filled) {
+				border-color: var(--pink);
+				color: var(--pink);
+			}
+			.goal-suggest {
+				background: var(--bg2);
+				padding: 8px 10px;
+				border-radius: var(--r-md);
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 8px;
+				border: 1px solid var(--border);
+			}
+			.suggest-label {
+				font-size: 10px;
+				color: var(--text2);
+				margin-bottom: 2px;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+			.suggest-text {
+				font-style: italic;
+				flex: 1;
+				color: var(--text0);
+				font-size: 13px;
+			}
+			.reshuffle {
+				font-size: 11px;
+				cursor: pointer;
+				color: var(--text2);
+				border: none;
+				background: none;
+				padding: 0;
+				font-family: "DM Sans", sans-serif;
+			}
+			.reshuffle:hover {
+				color: var(--green);
+			}
+			.del-x {
+				background: none;
+				border: none;
+				cursor: pointer;
+				color: var(--text3);
+				font-size: 15px;
+				padding: 2px 4px;
+				line-height: 1;
+				transition: color 0.1s;
+			}
+			.del-x:hover {
+				color: var(--pink);
+			}
+			/* inspire */
+			.inspire-grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 8px;
+				margin-bottom: 1rem;
+			}
+			@media (min-width: 520px) {
+				.inspire-grid {
+					grid-template-columns: repeat(3, 1fr);
+				}
+			}
+			.ins-card {
+				padding: 0.9rem 1rem;
+				border-radius: var(--r-lg);
+				border: 1px solid var(--border);
+				background: var(--bg1);
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+				transition: border-color 0.15s;
+			}
+			.ins-card:hover {
+				border-color: var(--green2);
+			}
+			.ins-cat {
+				font-size: 10px;
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+			}
+			.ins-text {
+				font-size: 13px;
+				font-weight: 500;
+				line-height: 1.4;
+				flex: 1;
+				color: var(--text0);
+			}
+			.ins-footer {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 4px;
+				flex-wrap: wrap;
+			}
+			.ins-done-btn {
+				font-size: 11px;
+				padding: 3px 8px;
+				border-radius: 99px;
+				border: 1px solid var(--border);
+				background: var(--bg2);
+				cursor: pointer;
+				color: var(--text2);
+				transition: all 0.15s;
+				font-family: "DM Sans", sans-serif;
+			}
+			.ins-done-btn:hover {
+				border-color: var(--green);
+				color: var(--green);
+			}
+			.ins-done-btn.did {
+				border-color: var(--green2);
+				background: var(--green2);
+				color: #fff;
+				cursor: default;
+			}
+			.shuffle-row {
+				display: flex;
+				gap: 8px;
+				flex-wrap: wrap;
+				margin-top: 0.25rem;
+			}
+			/* library */
+			.lib-controls {
+				display: flex;
+				gap: 6px;
+				margin-bottom: 0.75rem;
+				flex-wrap: wrap;
+				align-items: center;
+			}
+			.lib-search {
+				flex: 1;
+				min-width: 130px;
+				padding: 8px 11px;
+				font-size: 13px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg1);
+				color: var(--text0);
+				font-family: "DM Sans", sans-serif;
+			}
+			.lib-search::placeholder {
+				color: var(--text3);
+			}
+			.lib-search:focus {
+				outline: none;
+				border-color: var(--green2);
+			}
+			.chip {
+				font-size: 11px;
+				padding: 4px 10px;
+				border-radius: 99px;
+				border: 1px solid var(--border);
+				background: none;
+				cursor: pointer;
+				color: var(--text2);
+				white-space: nowrap;
+				transition: all 0.15s;
+				font-family: "DM Sans", sans-serif;
+			}
+			.chip.on {
+				border-color: var(--pink);
+				background: var(--pink-bg);
+				color: var(--pink);
+			}
+			.chip:hover:not(.on) {
+				color: var(--text0);
+			}
+			.add-row {
+				display: flex;
+				gap: 6px;
+				margin-bottom: 0.75rem;
+				flex-wrap: wrap;
+			}
+			.add-inp {
+				flex: 2;
+				min-width: 120px;
+				padding: 8px 10px;
+				font-size: 13px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg1);
+				color: var(--text0);
+				font-family: "DM Sans", sans-serif;
+			}
+			.add-inp::placeholder {
+				color: var(--text3);
+			}
+			.add-inp:focus {
+				outline: none;
+				border-color: var(--green2);
+			}
+			.add-sel {
+				padding: 8px 6px;
+				font-size: 12px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg1);
+				color: var(--text1);
+				font-family: "DM Sans", sans-serif;
+			}
+			.add-sel:focus {
+				outline: none;
+				border-color: var(--green2);
+			}
+			.add-btn {
+				padding: 8px 13px;
+				font-size: 13px;
+				border: 1px solid var(--green2);
+				border-radius: var(--r-md);
+				background: var(--bg2);
+				cursor: pointer;
+				color: var(--green);
+				font-family: "DM Sans", sans-serif;
+				transition: all 0.15s;
+			}
+			.add-btn:hover {
+				background: var(--green2);
+				color: #fff;
+			}
+			.lib-group {
+				margin-bottom: 1.1rem;
+			}
+			.lib-group-header {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin-bottom: 5px;
+				padding-bottom: 6px;
+				border-bottom: 1px solid var(--border);
+			}
+			.lib-dot {
+				width: 7px;
+				height: 7px;
+				border-radius: 50%;
+				flex-shrink: 0;
+			}
+			.lib-group-name {
+				font-size: 11px;
+				font-weight: 600;
+				color: var(--text1);
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+			}
+			.lib-group-count {
+				font-size: 11px;
+				color: var(--text3);
+				margin-left: auto;
+			}
+			.lib-item {
+				display: flex;
+				flex-direction: column;
+				padding: 4px 4px;
+				border-radius: var(--r-md);
+				transition: background 0.1s;
+			}
+			.lib-item:hover {
+				background: var(--bg2);
+			}
+			.lib-item-row {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+			.lib-check {
+				width: 18px;
+				height: 18px;
+				border-radius: 4px;
+				border: 1px solid var(--border);
+				flex-shrink: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 11px;
+				cursor: pointer;
+				transition: all 0.15s;
+				color: #fff;
+			}
+			.lib-check:hover {
+				border-color: var(--green);
+			}
+			.lib-check.done {
+				border-color: var(--green2);
+				background: var(--green2);
+			}
+			.lib-item-text {
+				flex: 1;
+				font-size: 13px;
+				line-height: 1.4;
+				color: var(--text0);
+				cursor: pointer;
+			}
+			.lib-item-text.done {
+				text-decoration: line-through;
+				color: var(--text3);
+			}
+			.cat-dots {
+				display: flex;
+				gap: 3px;
+				align-items: center;
+				flex-shrink: 0;
+			}
+			.cat-dot-sm {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+			}
+			.del-item {
+				font-size: 11px;
+				color: var(--text3);
+				background: none;
+				border: none;
+				cursor: pointer;
+				padding: 3px 5px;
+				opacity: 0;
+				transition:
+					opacity 0.1s,
+					color 0.1s;
+				flex-shrink: 0;
+			}
+			.lib-item:hover .del-item {
+				opacity: 1;
+			}
+			.del-item:hover {
+				color: var(--pink);
+			}
+			.lib-item-meta {
+				display: flex;
+				gap: 4px;
+				flex-wrap: wrap;
+				padding: 6px 0 3px 24px;
+				align-items: center;
+			}
+			.meta-chip {
+				font-size: 10px;
+				padding: 2px 7px;
+				border-radius: 99px;
+				border: 1px solid var(--border);
+				background: var(--bg2);
+				cursor: pointer;
+				color: var(--text2);
+				transition: all 0.12s;
+				user-select: none;
+				font-family: "DM Sans", sans-serif;
+			}
+			.meta-chip.active {
+				font-weight: 600;
+			}
+			.meta-sep {
+				font-size: 10px;
+				color: var(--text3);
+				padding: 0 2px;
+				flex-shrink: 0;
+			}
+			.sb {
+				font-size: 10px;
+				padding: 2px 6px;
+				border-radius: 99px;
+				flex-shrink: 0;
+				font-weight: 500;
+				cursor: pointer;
+			}
+			.sb-spring {
+				background: #1a2e14;
+				color: #7cc46a;
+			}
+			.sb-summer {
+				background: #2a2200;
+				color: #c8a84b;
+			}
+			.sb-fall {
+				background: #2a1500;
+				color: #d4784a;
+			}
+			.sb-winter {
+				background: #0f1e2e;
+				color: #6aaed4;
+			}
+			.sb-any {
+				background: var(--bg3);
+				color: var(--text2);
+			}
+			/* modal */
+			.modal-bg {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.7);
+				display: none;
+				align-items: flex-start;
+				justify-content: center;
+				padding: max(var(--safe-top), 1rem) 1rem 1rem;
+				z-index: 100;
+				overflow-y: auto;
+			}
+			.modal-bg.open {
+				display: flex;
+			}
+			.modal {
+				background: var(--bg1);
+				border-radius: var(--r-lg);
+				border: 1px solid var(--border);
+				padding: 1.25rem;
+				width: 100%;
+				max-width: 420px;
+				font-family: "DM Sans", sans-serif;
+			}
+			.modal-title {
+				font-size: 16px;
+				font-weight: 400;
+				color: var(--text0);
+				margin-bottom: 1.1rem;
+				font-family: "DM Serif Display", serif;
+			}
+			.modal-field {
+				margin-bottom: 0.9rem;
+			}
+			.modal-label {
+				font-size: 11px;
+				color: var(--text2);
+				margin-bottom: 5px;
+				display: block;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+			.modal-inp {
+				width: 100%;
+				padding: 9px 11px;
+				font-size: 13px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg2);
+				color: var(--text0);
+				font-family: "DM Sans", sans-serif;
+			}
+			.modal-inp:focus {
+				outline: none;
+				border-color: var(--green2);
+			}
+			.modal-sel {
+				width: 100%;
+				padding: 9px 11px;
+				font-size: 13px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg2);
+				color: var(--text1);
+				font-family: "DM Sans", sans-serif;
+			}
+			.modal-sel:focus {
+				outline: none;
+				border-color: var(--green2);
+			}
+			.freq-btns {
+				display: flex;
+				gap: 5px;
+			}
+			.freq-btn {
+				flex: 1;
+				padding: 8px 4px;
+				font-size: 12px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg2);
+				cursor: pointer;
+				color: var(--text2);
+				text-align: center;
+				transition: all 0.15s;
+				font-family: "DM Sans", sans-serif;
+			}
+			.freq-btn.on {
+				background: var(--pink-bg);
+				border-color: var(--pink);
+				color: var(--pink);
+				font-weight: 600;
+			}
+			.freq-btn:hover:not(.on) {
+				border-color: var(--green2);
+				color: var(--text0);
+			}
+			.goal-items-grid {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 5px;
+				max-height: 160px;
+				overflow-y: auto;
+				padding: 4px 0;
+			}
+			.goal-item-chip {
+				font-size: 11px;
+				padding: 4px 9px;
+				border-radius: 99px;
+				border: 1px solid var(--border);
+				background: var(--bg2);
+				cursor: pointer;
+				color: var(--text2);
+				transition: all 0.15s;
+				font-family: "DM Sans", sans-serif;
+			}
+			.goal-item-chip.on {
+				border-color: var(--pink);
+				background: var(--pink-bg);
+				color: var(--pink);
+			}
+			.goal-item-chip:hover:not(.on) {
+				border-color: var(--green2);
+				color: var(--text0);
+			}
+			.modal-row {
+				display: flex;
+				gap: 8px;
+				margin-top: 1.1rem;
+				justify-content: flex-end;
+			}
+			.modal-cancel {
+				padding: 8px 15px;
+				font-size: 13px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: none;
+				cursor: pointer;
+				color: var(--text2);
+				font-family: "DM Sans", sans-serif;
+				transition: all 0.15s;
+			}
+			.modal-cancel:hover {
+				background: var(--bg2);
+				color: var(--text0);
+			}
+			.modal-save {
+				padding: 8px 18px;
+				font-size: 13px;
+				border: none;
+				border-radius: var(--r-md);
+				background: var(--green);
+				color: #0f1a12;
+				cursor: pointer;
+				font-weight: 600;
+				font-family: "DM Sans", sans-serif;
+				transition: background 0.15s;
+			}
+			.modal-save:hover {
+				background: #5fcf88;
+			}
+			/* toast */
+			.toast {
+				position: fixed;
+				bottom: calc(var(--safe-bottom) + 72px);
+				left: 50%;
+				transform: translateX(-50%);
+				background: var(--bg3);
+				border: 1px solid var(--green2);
+				color: var(--text0);
+				padding: 9px 16px;
+				border-radius: 99px;
+				font-size: 13px;
+				display: none;
+				align-items: center;
+				gap: 10px;
+				z-index: 200;
+				white-space: nowrap;
+				box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+				font-family: "DM Sans", sans-serif;
+			}
+			.toast.show {
+				display: flex;
+			}
+			.toast-undo {
+				background: none;
+				border: none;
+				color: var(--pink);
+				font-size: 13px;
+				cursor: pointer;
+				font-weight: 500;
+				padding: 0;
+				font-family: "DM Sans", sans-serif;
+			}
+			/* sync status */
+			.sync-dot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: var(--text3);
+				display: inline-block;
+				margin-left: 6px;
+				transition: background 0.3s;
+				vertical-align: middle;
+			}
+			.sync-dot.saving {
+				background: var(--gold);
+			}
+			.sync-dot.saved {
+				background: var(--green);
+			}
+			.sync-dot.error {
+				background: var(--pink);
+			}
+			/* setup banner */
+			.setup-banner {
+				background: var(--bg2);
+				border: 1px solid var(--gold);
+				border-radius: var(--r-lg);
+				padding: 1rem 1.1rem;
+				margin-bottom: 1.25rem;
+				font-size: 13px;
+				line-height: 1.6;
+				color: var(--text1);
+			}
+			.setup-banner strong {
+				color: var(--gold);
+			}
+			.setup-inp {
+				width: 100%;
+				margin-top: 0.6rem;
+				padding: 8px 10px;
+				font-size: 12px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg1);
+				color: var(--text0);
+				font-family: "DM Sans", sans-serif;
+			}
+			.setup-inp:focus {
+				outline: none;
+				border-color: var(--gold);
+			}
+			.setup-btn {
+				margin-top: 0.5rem;
+				padding: 7px 14px;
+				font-size: 12px;
+				border: none;
+				border-radius: var(--r-md);
+				background: var(--gold);
+				color: #1a1200;
+				cursor: pointer;
+				font-weight: 600;
+				font-family: "DM Sans", sans-serif;
+			}
+			.empty {
+				color: var(--text3);
+				font-size: 13px;
+				padding: 0.5rem 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="app">
+			<div class="app-title">
+				Life Landscape
+				<span>your world, at a glance</span>
+				<span class="sync-dot" id="sync-dot" title="Sync status"></span>
+			</div>
+
+			<!-- SETUP BANNER (shown until API URL is saved) -->
+			<div class="setup-banner" id="setup-banner" style="display: none">
+				<strong>One-time setup:</strong> paste your Apps Script Web App URL
+				below to connect your Google Sheet.
+				<input
+					class="setup-inp"
+					id="api-url-input"
+					type="text"
+					placeholder="https://script.google.com/macros/s/..."
+				/>
+				<button class="setup-btn" onclick="saveApiUrl()">Connect</button>
+			</div>
+
+			<div id="home" class="panel active">
+				<div class="section-header" style="margin-bottom: 10px">
+					<div class="section-title">Life at a glance</div>
+					<button class="ghost-btn" onclick="openGoalModal()">+ goal</button>
+				</div>
+				<div class="rings-grid" id="rings-grid"></div>
+				<div class="section-header" style="margin-top: 0.25rem">
+					<div class="section-title">Active goals</div>
+				</div>
+				<div id="goals-list"></div>
+				<div id="goals-empty" class="empty" style="display: none">
+					No goals yet — tap + goal above.
+				</div>
+			</div>
+
+			<div id="inspire" class="panel">
+				<div class="section-header" style="margin-bottom: 12px">
+					<div class="section-title">What could you do today?</div>
+				</div>
+				<div class="inspire-grid" id="inspire-cards"></div>
+				<div class="shuffle-row">
+					<button class="ghost-btn" onclick="renderInspire()">↺ Shuffle</button>
+				</div>
+			</div>
+
+			<div id="library" class="panel">
+				<div class="add-row">
+					<input
+						class="add-inp"
+						id="add-text"
+						type="text"
+						placeholder="Add new item..."
+						onkeydown="if (event.key === 'Enter') addItem();"
+					/>
+					<select class="add-sel" id="add-cat">
+						<option value="food">Food</option>
+						<option value="arts">Arts</option>
+						<option value="physical">Physical</option>
+						<option value="travel">Travel</option>
+						<option value="self">Self</option>
+						<option value="mind">Mind</option>
+						<option value="home">Home</option>
+					</select>
+					<select class="add-sel" id="add-season">
+						<option value="any">Any</option>
+						<option value="spring">Spring</option>
+						<option value="summer">Summer</option>
+						<option value="fall">Fall</option>
+						<option value="winter">Winter</option>
+					</select>
+					<button class="add-btn" onclick="addItem()">Add</button>
+				</div>
+				<div class="lib-controls">
+					<input
+						class="lib-search"
+						type="text"
+						placeholder="Search..."
+						oninput="renderLibrary(this.value)"
+					/>
+					<button
+						class="chip on"
+						id="hide-done-chip"
+						onclick="toggleHideDone(this)"
+					>
+						Hide done
+					</button>
+				</div>
+				<div id="lib-content"></div>
+			</div>
+		</div>
+
+		<nav class="nav">
+			<button class="nav-btn active" onclick="nav('home', this)">
+				<span class="ni">◎</span>Home
+			</button>
+			<button class="nav-btn" onclick="nav('inspire', this)">
+				<span class="ni">✦</span>Inspire
+			</button>
+			<button class="nav-btn" onclick="nav('library', this)">
+				<span class="ni">≡</span>Library
+			</button>
+		</nav>
+
+		<div class="modal-bg" id="goal-modal">
+			<div class="modal">
+				<div class="modal-title">New goal</div>
+				<div class="modal-field">
+					<label class="modal-label">Goal name</label>
+					<input
+						class="modal-inp"
+						id="g-name"
+						placeholder="e.g. Skate regularly"
+					/>
+				</div>
+				<div class="modal-field">
+					<label class="modal-label">Category</label>
+					<select class="modal-sel" id="g-cat" onchange="populateGoalItems()">
+						<option value="food">Food & cooking</option>
+						<option value="arts">Arts & creative</option>
+						<option value="physical" selected>Physical</option>
+						<option value="travel">Travel & places</option>
+						<option value="self">Self</option>
+						<option value="mind">Mind & learning</option>
+						<option value="home">Home & nesting</option>
+					</select>
+				</div>
+				<div class="modal-field">
+					<label class="modal-label">Times per week</label>
+					<div class="freq-btns">
+						<button class="freq-btn" onclick="setFreq(1, this)">1×</button>
+						<button class="freq-btn" onclick="setFreq(2, this)">2×</button>
+						<button class="freq-btn on" onclick="setFreq(3, this)">3×</button>
+						<button class="freq-btn" onclick="setFreq(4, this)">4×</button>
+						<button class="freq-btn" onclick="setFreq(5, this)">5×</button>
+					</div>
+				</div>
+				<div class="modal-field">
+					<label class="modal-label"
+						>Linked items
+						<span
+							style="
+								color: var(--text3);
+								text-transform: none;
+								letter-spacing: 0;
+								font-weight: 400;
+							"
+							>— count toward this goal</span
+						></label
+					>
+					<div class="goal-items-grid" id="g-items"></div>
+				</div>
+				<div class="modal-row">
+					<button class="modal-cancel" onclick="closeGoalModal()">
+						Cancel
+					</button>
+					<button class="modal-save" onclick="saveGoal()">Save goal</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="toast" id="toast">
+			<span id="toast-msg"></span>
+			<button class="toast-undo" onclick="undoLast()">Undo</button>
+		</div>
+
+		<script>
+			// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+			const CATS = {
+				food: {
+					label: "Food & cooking",
+					short: "Food",
+					color: "#4caf72",
+					icon: "🍳",
+				},
+				arts: {
+					label: "Arts & creative",
+					short: "Arts",
+					color: "#a78bfa",
+					icon: "🎨",
+				},
+				physical: {
+					label: "Physical",
+					short: "Physical",
+					color: "#e8607a",
+					icon: "🏃",
+				},
+				travel: {
+					label: "Travel & places",
+					short: "Travel",
+					color: "#6ecf8a",
+					icon: "📍",
+				},
+				self: { label: "Self", short: "Self", color: "#f472b6", icon: "✨" },
+				mind: {
+					label: "Mind & learning",
+					short: "Mind",
+					color: "#60a5d4",
+					icon: "📖",
+				},
+				home: {
+					label: "Home & nesting",
+					short: "Home",
+					color: "#c8a84b",
+					icon: "🏡",
+				},
+			};
+			const CATKEYS = Object.keys(CATS);
+			const SEASONS = ["any", "spring", "summer", "fall", "winter"];
+			const SL = {
+				any: "Any",
+				spring: "Spring",
+				summer: "Summer",
+				fall: "Fall",
+				winter: "Winter",
+			};
+			const SC = {
+				any: "sb-any",
+				spring: "sb-spring",
+				summer: "sb-summer",
+				fall: "sb-fall",
+				winter: "sb-winter",
+			};
+			const DECAY_MS = 30 * 24 * 3600 * 1000;
+			const LOGS_MAX = 10;
+			const LS_URL_KEY = "ll_api_url";
+			const LS_CACHE_KEY = "ll_cache";
+
+			// ── DEFAULT DATA (used only on first load, before Sheet has any data) ──────────
+			const DEFAULT_STATE = {
+				items: [
+					{ id: 1, t: "Bake Bread", cats: ["food"], s: "any", done: false },
+				],
+				goals: [
+					{
+						id: 1,
+						name: "Skate regularly",
+						cat: "physical",
+						freq: 3,
+						itemIds: [80, 81, 82, 83],
+						weekLogs: [],
+						suggest: null,
+					},
+				],
+				categoryLogs: {
+					food: [],
+					arts: [],
+					physical: [],
+					travel: [],
+					self: [],
+					mind: [],
+					home: [],
+				},
+				hideDone: true,
+				nextId: 300,
+			};
+
+			// ── STATE ─────────────────────────────────────────────────────────────────────
+			let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+			let apiUrl = localStorage.getItem(LS_URL_KEY) || "";
+			let saveTimer = null;
+			let lastAction = null;
+			let toastTimer = null;
+			let libCatFilter = "all";
+			let expandedItems = new Set();
+			let goalFreqTemp = 3;
+			let goalItemSel = new Set();
+			let inspireItemIds = {};
+
+			// ── SYNC DOT ──────────────────────────────────────────────────────────────────
+			function setSyncDot(s) {
+				const d = document.getElementById("sync-dot");
+				d.className = "sync-dot " + s;
+			}
+
+			// ── API ───────────────────────────────────────────────────────────────────────
+			async function remoteLoad() {
+				if (!apiUrl) return null;
+				try {
+					const r = await fetch(apiUrl + "?action=load");
+					const j = await r.json();
+					return j.ok ? j.data : null;
+				} catch (e) {
+					return null;
+				}
+			}
+
+			async function remoteSave(data) {
+				if (!apiUrl) return;
+				setSyncDot("saving");
+				try {
+					await fetch(apiUrl, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ action: "save", data }),
+					});
+					setSyncDot("saved");
+					localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
+				} catch (e) {
+					setSyncDot("error");
+				}
+			}
+
+			function scheduleSave() {
+				clearTimeout(saveTimer);
+				saveTimer = setTimeout(() => remoteSave(state), 800);
+			}
+
+			// ── INIT ──────────────────────────────────────────────────────────────────────
+			async function init() {
+				// Show setup banner if no API URL yet
+				if (!apiUrl) {
+					document.getElementById("setup-banner").style.display = "block";
+					// Still load from local cache if exists
+					const cached = localStorage.getItem(LS_CACHE_KEY);
+					if (cached) state = JSON.parse(cached);
+				} else {
+					setSyncDot("saving");
+					// Try loading from Sheet first
+					const remote = await remoteLoad();
+					if (remote) {
+						state = remote;
+						localStorage.setItem(LS_CACHE_KEY, JSON.stringify(state));
+						setSyncDot("saved");
+					} else {
+						// Fall back to local cache
+						const cached = localStorage.getItem(LS_CACHE_KEY);
+						if (cached) {
+							state = JSON.parse(cached);
+							setSyncDot("error");
+						}
+					}
+				}
+				document
+					.getElementById("hide-done-chip")
+					.classList.toggle("on", state.hideDone);
+				renderRings();
+				renderGoals();
+			}
+
+			function saveApiUrl() {
+				const val = document.getElementById("api-url-input").value.trim();
+				if (!val.startsWith("https://script.google.com")) {
+					alert("That doesn't look right — paste the full Apps Script URL.");
+					return;
+				}
+				apiUrl = val;
+				localStorage.setItem(LS_URL_KEY, apiUrl);
+				document.getElementById("setup-banner").style.display = "none";
+				// First save pushes the default state to the sheet
+				remoteSave(state);
+			}
+
+			// ── HELPERS ───────────────────────────────────────────────────────────────────
+			function currentSeason() {
+				const m = new Date().getMonth();
+				if (m >= 2 && m <= 4) return "spring";
+				if (m >= 5 && m <= 7) return "summer";
+				if (m >= 8 && m <= 10) return "fall";
+				return "winter";
+			}
+			function weekStart() {
+				const d = new Date();
+				d.setHours(0, 0, 0, 0);
+				d.setDate(d.getDate() - d.getDay());
+				return d.getTime();
+			}
+			function logsThisWeek(g) {
+				return (g.weekLogs || []).filter((t) => t >= weekStart()).length;
+			}
+
+			// ── RING DECAY ────────────────────────────────────────────────────────────────
+			function ringFill(cat) {
+				const now = Date.now();
+				const fill = (state.categoryLogs[cat] || []).reduce((sum, ts) => {
+					const age = now - ts;
+					return age > DECAY_MS ? sum : sum + (1 - age / DECAY_MS);
+				}, 0);
+				return Math.min(fill / LOGS_MAX, 1);
+			}
+
+			// ── LOGGING ───────────────────────────────────────────────────────────────────
+			function logCats(cats) {
+				const now = Date.now();
+				cats.forEach((cat) => {
+					if (!state.categoryLogs[cat]) state.categoryLogs[cat] = [];
+					state.categoryLogs[cat].push(now);
+				});
+				scheduleSave();
+				return now;
+			}
+			function undoCatLogs(cats, ts) {
+				cats.forEach((cat) => {
+					const arr = state.categoryLogs[cat];
+					if (!arr) return;
+					const i = arr.lastIndexOf(ts);
+					if (i > -1) arr.splice(i, 1);
+				});
+			}
+			function quickLog(cat) {
+				const ts = logCats([cat]);
+				lastAction = { type: "quick", cats: [cat], ts };
+				showToast(CATS[cat].short + " logged", true);
+				renderRings();
+			}
+			function markItemDone(id, done) {
+				const it = state.items.find((i) => i.id === id);
+				if (!it) return;
+				const wasDone = it.done;
+				it.done = done;
+				if (done && !wasDone) {
+					const ts = logCats(it.cats);
+					lastAction = { type: "itemdone", id, cats: [...it.cats], ts };
+					showToast(
+						"Done! " +
+							it.cats.map((c) => CATS[c].short).join(" + ") +
+							" logged ✓",
+						true,
+					);
+					renderRings();
+				}
+				scheduleSave();
+			}
+			function logGoal(gid) {
+				const g = state.goals.find((g) => g.id === gid);
+				if (!g) return;
+				if (logsThisWeek(g) >= g.freq) return;
+				const ts = logCats([g.cat]);
+				if (!g.weekLogs) g.weekLogs = [];
+				g.weekLogs.push(ts);
+				lastAction = { type: "goallog", gid, cats: [g.cat], ts };
+				showToast("Logged!", true);
+				renderGoals();
+				renderRings();
+			}
+			function undoLast() {
+				if (!lastAction) return;
+				if (lastAction.type === "quick" || lastAction.type === "itemdone") {
+					undoCatLogs(lastAction.cats, lastAction.ts);
+					if (lastAction.type === "itemdone") {
+						const it = state.items.find((i) => i.id === lastAction.id);
+						if (it) it.done = false;
+						renderLibrary(document.querySelector(".lib-search")?.value || "");
+						renderInspire();
+					}
+					renderRings();
+				} else if (lastAction.type === "goallog") {
+					const g = state.goals.find((g) => g.id === lastAction.gid);
+					if (g) {
+						const i = (g.weekLogs || []).lastIndexOf(lastAction.ts);
+						if (i > -1) g.weekLogs.splice(i, 1);
+					}
+					undoCatLogs(lastAction.cats, lastAction.ts);
+					renderGoals();
+					renderRings();
+				}
+				lastAction = null;
+				scheduleSave();
+				hideToast();
+			}
+
+			// ── RENDER RINGS ──────────────────────────────────────────────────────────────
+			function renderRings() {
+				const el = document.getElementById("rings-grid");
+				const r = 17,
+					circ = 2 * Math.PI * r;
+				el.innerHTML = CATKEYS.map((cat) => {
+					const c = CATS[cat];
+					const fill = ringFill(cat);
+					const dash = (circ * fill).toFixed(1);
+					const stroke = fill > 0.01 ? c.color : "#2e3f32";
+					return `<div class="ring-cell" onclick="nav('library',null,'${cat}')">
+      <div class="ring-wrap">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle fill="none" stroke="#1d2b20" stroke-width="4" cx="21" cy="21" r="${r}"/>
+          <circle fill="none" stroke="${stroke}" stroke-width="4" stroke-linecap="round"
+            cx="21" cy="21" r="${r}"
+            stroke-dasharray="${dash} ${circ.toFixed(1)}" stroke-dashoffset="0"
+            style="transition:stroke-dasharray .4s ease"/>
+        </svg>
+        <div class="ring-icon">${c.icon}</div>
+      </div>
+      <div class="ring-label">${c.short}</div>
+      <div class="quick-log" onclick="event.stopPropagation();quickLog('${cat}')" title="Log ${c.label}">+</div>
+    </div>`;
+				}).join("");
+			}
+
+			// ── RENDER GOALS ──────────────────────────────────────────────────────────────
+			function getSuggestion(g) {
+				if (!g.itemIds || !g.itemIds.length) return null;
+				if (g.suggest != null) {
+					const it = state.items.find((i) => i.id === g.suggest);
+					if (it && !it.done) return it.t;
+				}
+				const pool = state.items.filter(
+					(i) => g.itemIds.includes(i.id) && !i.done,
+				);
+				if (!pool.length) return null;
+				g.suggest = pool[Math.floor(Math.random() * pool.length)].id;
+				return state.items.find((i) => i.id === g.suggest)?.t || null;
+			}
+			function reshuffleGoal(gid) {
+				const g = state.goals.find((g) => g.id === gid);
+				if (!g) return;
+				const pool = state.items.filter(
+					(i) => g.itemIds.includes(i.id) && !i.done && i.id !== g.suggest,
+				);
+				if (!pool.length) return;
+				g.suggest = pool[Math.floor(Math.random() * pool.length)].id;
+				scheduleSave();
+				renderGoals();
+			}
+			function renderGoals() {
+				const el = document.getElementById("goals-list");
+				const em = document.getElementById("goals-empty");
+				if (!state.goals.length) {
+					el.innerHTML = "";
+					em.style.display = "block";
+					return;
+				}
+				em.style.display = "none";
+				const wkStr = new Date(weekStart()).toLocaleDateString("en-US", {
+					month: "short",
+					day: "numeric",
+				});
+				el.innerHTML = state.goals
+					.map((g) => {
+						const c = CATS[g.cat];
+						const done = logsThisWeek(g);
+						const pips = Array.from(
+							{ length: g.freq },
+							(_, i) =>
+								`<div class="pip${i < done ? " filled" : ""}" onclick="logGoal(${g.id})">${i < done ? "✓" : ""}</div>`,
+						).join("");
+						const sugg = getSuggestion(g);
+						return `<div class="goal-card">
+      <div class="goal-top">
+        <div><div class="goal-name">${g.name}</div>
+          <div class="goal-meta" style="color:${c.color}">${c.label} · ${g.freq}× per week</div></div>
+        <button class="del-x" onclick="deleteGoal(${g.id})">✕</button>
+      </div>
+      <div class="week-label">Week of ${wkStr}</div>
+      <div class="goal-pips">${pips}</div>
+      ${
+				sugg
+					? `<div class="goal-suggest">
+        <div><div class="suggest-label">try today</div><div class="suggest-text">${sugg}</div></div>
+        <button class="reshuffle" onclick="reshuffleGoal(${g.id})">↺ other</button>
+      </div>`
+					: ""
+			}
+    </div>`;
+					})
+					.join("");
+			}
+			function deleteGoal(gid) {
+				state.goals = state.goals.filter((g) => g.id !== gid);
+				scheduleSave();
+				renderGoals();
+				renderRings();
+			}
+
+			// ── INSPIRE ───────────────────────────────────────────────────────────────────
+			function renderInspire() {
+				const season = currentSeason();
+				const el = document.getElementById("inspire-cards");
+				const shuffled = CATKEYS.slice().sort(() => Math.random() - 0.5);
+				const picks = [];
+				shuffled.forEach((cat) => {
+					const pool = state.items.filter(
+						(i) =>
+							i.cats.includes(cat) &&
+							!i.done &&
+							(i.s === "any" || i.s === season),
+					);
+					if (pool.length && picks.length < 6) {
+						const p = pool[Math.floor(Math.random() * pool.length)];
+						if (!picks.find((x) => x.id === p.id))
+							picks.push({ ...p, c: CATS[cat] });
+					}
+				});
+				inspireItemIds = {};
+				if (!picks.length) {
+					el.innerHTML =
+						'<div class="empty">Nothing for this season yet.</div>';
+					return;
+				}
+				el.innerHTML = picks
+					.map((p, idx) => {
+						inspireItemIds[idx] = p.id;
+						return `<div class="ins-card" style="border-color:${p.c.color}33">
+      <div class="ins-cat" style="color:${p.c.color}">${p.c.label}</div>
+      <div class="ins-text">${p.t}</div>
+      <div class="ins-footer">
+        <span class="sb ${SC[p.s]}">${SL[p.s]}</span>
+        <button class="ins-done-btn" id="ins-done-${idx}" onclick="inspireMarkDone(${idx})">✓ did this</button>
+      </div>
+    </div>`;
+					})
+					.join("");
+			}
+			function inspireMarkDone(idx) {
+				const id = inspireItemIds[idx];
+				if (id == null) return;
+				const it = state.items.find((i) => i.id === id);
+				if (!it || it.done) return;
+				markItemDone(id, true);
+				const btn = document.getElementById("ins-done-" + idx);
+				if (btn) {
+					btn.textContent = "✓ done!";
+					btn.classList.add("did");
+					btn.disabled = true;
+				}
+			}
+
+			// ── LIBRARY ───────────────────────────────────────────────────────────────────
+			function renderLibrary(search = "") {
+				const el = document.getElementById("lib-content");
+				const byCat = {};
+				state.items.forEach((i) => {
+					if (state.hideDone && i.done) return;
+					if (search && !i.t.toLowerCase().includes(search.toLowerCase()))
+						return;
+					i.cats.forEach((cat) => {
+						if (libCatFilter !== "all" && cat !== libCatFilter) return;
+						if (!byCat[cat]) byCat[cat] = [];
+						if (!byCat[cat].find((x) => x.id === i.id)) byCat[cat].push(i);
+					});
+				});
+				if (!Object.keys(byCat).length) {
+					el.innerHTML = '<div class="empty">Nothing here.</div>';
+					return;
+				}
+				el.innerHTML = CATKEYS.filter((cat) => byCat[cat])
+					.map((cat) => {
+						const c = CATS[cat];
+						const allInCat = state.items.filter((i) => i.cats.includes(cat));
+						const dn = allInCat.filter((i) => i.done).length;
+						return `<div class="lib-group">
+      <div class="lib-group-header">
+        <div class="lib-dot" style="background:${c.color}"></div>
+        <div class="lib-group-name">${c.label}</div>
+        <div class="lib-group-count">${dn}/${allInCat.length} done</div>
+      </div>
+      ${byCat[cat]
+				.map((i) => {
+					const extra = i.cats.filter((k) => k !== cat);
+					const expanded = expandedItems.has(i.id);
+					return `<div class="lib-item">
+          <div class="lib-item-row">
+            <div class="lib-check${i.done ? " done" : ""}" onclick="toggleDone(${i.id})">${i.done ? "✓" : ""}</div>
+            <span class="lib-item-text${i.done ? " done" : ""}" onclick="toggleExpand(${i.id})">${i.t}</span>
+            ${
+							extra.length
+								? `<div class="cat-dots" title="Also: ${extra.map((k) => CATS[k].short).join(", ")}">
+              ${extra.map((k) => `<div class="cat-dot-sm" style="background:${CATS[k].color}"></div>`).join("")}
+            </div>`
+								: ""
+						}
+            <span class="sb ${SC[i.s]}" onclick="toggleExpand(${i.id})">${SL[i.s]}</span>
+            <button class="del-item" onclick="deleteItem(${i.id})">✕</button>
+          </div>
+          ${
+						expanded
+							? `<div class="lib-item-meta">
+            ${CATKEYS.map(
+							(
+								k,
+							) => `<button class="meta-chip${i.cats.includes(k) ? " active" : ""}"
+              style="color:${CATS[k].color};border-color:${i.cats.includes(k) ? CATS[k].color : "var(--border)"};opacity:${i.cats.includes(k) ? 1 : 0.45}"
+              onclick="toggleItemCat(${i.id},'${k}')">${CATS[k].short}</button>`,
+						).join("")}
+            <span class="meta-sep">·</span>
+            ${SEASONS.map(
+							(sv) => `<button class="meta-chip${i.s === sv ? " active" : ""}"
+              style="${i.s === sv ? "border-color:var(--green2);color:var(--green)" : ""}"
+              onclick="setItemSeason(${i.id},'${sv}')">${SL[sv]}</button>`,
+						).join("")}
+          </div>`
+							: ""
+					}
+        </div>`;
+				})
+				.join("")}
+    </div>`;
+					})
+					.join("");
+			}
+			function toggleExpand(id) {
+				if (expandedItems.has(id)) expandedItems.delete(id);
+				else expandedItems.add(id);
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
+			function toggleDone(id) {
+				const it = state.items.find((i) => i.id === id);
+				if (!it) return;
+				if (!it.done) markItemDone(id, true);
+				else {
+					it.done = false;
+					scheduleSave();
+				}
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
+			function toggleItemCat(id, cat) {
+				const it = state.items.find((i) => i.id === id);
+				if (!it) return;
+				if (it.cats.includes(cat)) {
+					if (it.cats.length === 1) return;
+					it.cats = it.cats.filter((c) => c !== cat);
+				} else it.cats = [...it.cats, cat];
+				scheduleSave();
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
+			function setItemSeason(id, s) {
+				const it = state.items.find((i) => i.id === id);
+				if (it) {
+					it.s = s;
+					scheduleSave();
+				}
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
+			function deleteItem(id) {
+				state.items = state.items.filter((i) => i.id !== id);
+				expandedItems.delete(id);
+				scheduleSave();
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
+			function addItem() {
+				const t = document.getElementById("add-text").value.trim();
+				if (!t) return;
+				state.items.push({
+					id: state.nextId++,
+					t,
+					cats: [document.getElementById("add-cat").value],
+					s: document.getElementById("add-season").value,
+					done: false,
+				});
+				document.getElementById("add-text").value = "";
+				scheduleSave();
+				renderLibrary();
+			}
+			function toggleHideDone(el) {
+				state.hideDone = !state.hideDone;
+				el.classList.toggle("on", state.hideDone);
+				scheduleSave();
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
+
+			// ── GOAL MODAL ────────────────────────────────────────────────────────────────
+			function openGoalModal() {
+				goalFreqTemp = 3;
+				goalItemSel = new Set();
+				document.getElementById("g-name").value = "";
+				document.getElementById("g-cat").value = "physical";
+				document
+					.querySelectorAll(".freq-btn")
+					.forEach((b, i) => b.classList.toggle("on", i === 2));
+				populateGoalItems();
+				document.getElementById("goal-modal").classList.add("open");
+			}
+			function closeGoalModal() {
+				document.getElementById("goal-modal").classList.remove("open");
+			}
+			function setFreq(n, el) {
+				goalFreqTemp = n;
+				document
+					.querySelectorAll(".freq-btn")
+					.forEach((b) => b.classList.remove("on"));
+				el.classList.add("on");
+			}
+			function populateGoalItems() {
+				const cat = document.getElementById("g-cat").value;
+				const pool = state.items.filter((i) => i.cats.includes(cat) && !i.done);
+				const el = document.getElementById("g-items");
+				if (!pool.length) {
+					el.innerHTML =
+						'<div class="empty" style="font-size:11px">No undone items in this category.</div>';
+					return;
+				}
+				el.innerHTML = pool
+					.map(
+						(i) =>
+							`<button class="goal-item-chip${goalItemSel.has(i.id) ? " on" : ""}" onclick="toggleGoalItem(${i.id},this)">${i.t}</button>`,
+					)
+					.join("");
+			}
+			function toggleGoalItem(id, el) {
+				if (goalItemSel.has(id)) {
+					goalItemSel.delete(id);
+					el.classList.remove("on");
+				} else {
+					goalItemSel.add(id);
+					el.classList.add("on");
+				}
+			}
+			function saveGoal() {
+				const name = document.getElementById("g-name").value.trim();
+				if (!name) return;
+				state.goals.push({
+					id: state.nextId++,
+					name,
+					cat: document.getElementById("g-cat").value,
+					freq: goalFreqTemp,
+					itemIds: [...goalItemSel],
+					weekLogs: [],
+					suggest: null,
+				});
+				closeGoalModal();
+				scheduleSave();
+				renderGoals();
+				renderRings();
+			}
+
+			// ── TOAST ─────────────────────────────────────────────────────────────────────
+			function showToast(msg, withUndo) {
+				document.getElementById("toast-msg").textContent = msg;
+				document.querySelector(".toast-undo").style.display = withUndo
+					? "inline"
+					: "none";
+				document.getElementById("toast").classList.add("show");
+				clearTimeout(toastTimer);
+				toastTimer = setTimeout(hideToast, 4000);
+			}
+			function hideToast() {
+				document.getElementById("toast").classList.remove("show");
+			}
+
+			// ── NAV ───────────────────────────────────────────────────────────────────────
+			function nav(panel, el, catFilter) {
+				document
+					.querySelectorAll(".panel")
+					.forEach((p) => p.classList.remove("active"));
+				document
+					.querySelectorAll(".nav-btn")
+					.forEach((b) => b.classList.remove("active"));
+				document.getElementById(panel).classList.add("active");
+				if (el) el.classList.add("active");
+				else {
+					const b = document.querySelector(`.nav-btn[onclick*="'${panel}'"]`);
+					if (b) b.classList.add("active");
+				}
+				if (panel === "library") {
+					if (catFilter !== undefined) libCatFilter = catFilter;
+					renderLibrary();
+				}
+				if (panel === "inspire") renderInspire();
+				if (panel === "home") {
+					renderRings();
+					renderGoals();
+				}
+			}
+
+			init();
+		</script>
+	</body>
+</html>
