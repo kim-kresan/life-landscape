@@ -1272,6 +1272,7 @@
 				nextId: 300,
 				inspireCards: [],
 				inspireWeek: null,
+				inspireDone: [],
 			};
 
 			// ── STATE ─────────────────────────────────────────────────────────────────────
@@ -1363,6 +1364,7 @@
 				if (!state.categoryLogs.nature) state.categoryLogs.nature = [];
 				if (!Array.isArray(state.inspireCards)) state.inspireCards = [];
 				if (state.inspireWeek === undefined) state.inspireWeek = null;
+				if (!Array.isArray(state.inspireDone)) state.inspireDone = [];
 				document.getElementById("hide-done-chip") &&
 					document
 						.getElementById("hide-done-chip")
@@ -1599,6 +1601,7 @@
 				});
 				state.inspireCards = picks;
 				state.inspireWeek = weekStart();
+				state.inspireDone = [];
 				scheduleSave();
 			}
 			function ensureInspireCards() {
@@ -1630,6 +1633,9 @@
 				});
 				if (!pool.length) return;
 				const p = pool[Math.floor(Math.random() * pool.length)];
+				state.inspireDone = (state.inspireDone || []).filter(
+					(id) => id !== card.id,
+				);
 				state.inspireCards[idx] = { cat: card.cat, id: p.id };
 				scheduleSave();
 				renderInspireDisplay();
@@ -1653,12 +1659,13 @@
 						const c = CATS[card.cat];
 						inspireItemIds[idx] = { id: card.id, cats: it.cats };
 						if (!Array.isArray(it.seasons)) it.seasons = [it.s || "any"];
+						const alreadyDone = (state.inspireDone || []).includes(card.id);
 						return `<div class="ins-card" style="border-color:${c.color}33">
 	<div class="ins-cat" style="color:${c.color}">${c.label}<button class="ins-shuffle-btn" onclick="shuffleOneInspire(${idx})" title="Try another">↺</button></div>
 	<div class="ins-text">${it.t}</div>
 	<div class="ins-footer">
 		<span style="display:flex;gap:3px;flex-wrap:wrap">${it.seasons.map((sv) => `<span class="sb ${SC[sv]}">${SL[sv]}</span>`).join("")}</span>
-		<button class="ins-done-btn" id="ins-done-${idx}" onclick="inspireMarkDone(${idx})">✓ did this</button>
+		<button class="ins-done-btn${alreadyDone ? " did" : ""}" id="ins-done-${idx}" onclick="inspireMarkDone(${idx})"${alreadyDone ? " disabled" : ""}>${alreadyDone ? "✓ done!" : "✓ did this"}</button>
 	</div>
 </div>`;
 					})
@@ -1668,8 +1675,12 @@
 			function inspireMarkDone(idx) {
 				const entry = inspireItemIds[idx];
 				if (!entry) return;
+				if ((state.inspireDone || []).includes(entry.id)) return;
 				// Log the ring(s) but do NOT mark item done
 				inspireLog(entry.cats);
+				if (!Array.isArray(state.inspireDone)) state.inspireDone = [];
+				state.inspireDone.push(entry.id);
+				scheduleSave();
 				const btn = document.getElementById("ins-done-" + idx);
 				if (btn) {
 					btn.textContent = "✓ done!";
