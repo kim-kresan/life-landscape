@@ -152,17 +152,12 @@
 				color: var(--text0);
 				border-color: var(--green2);
 			}
-			/* rings — 2-row layout on mobile */
+			/* rings — 2-row layout of 4 */
 			.rings-grid {
 				display: grid;
-				grid-template-columns: repeat(7, 1fr);
+				grid-template-columns: repeat(4, 1fr);
 				gap: 8px;
 				margin-bottom: 1.75rem;
-			}
-			@media (min-width: 480px) {
-				.rings-grid {
-					grid-template-columns: repeat(8, 1fr);
-				}
 			}
 			.ring-cell {
 				display: flex;
@@ -179,8 +174,8 @@
 			}
 			.ring-wrap {
 				position: relative;
-				width: 58px;
-				height: 58px;
+				width: 72px;
+				height: 72px;
 			}
 			.ring-wrap svg {
 				position: absolute;
@@ -194,7 +189,7 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 22px;
+				font-size: 26px;
 			}
 			.ring-label {
 				font-size: 11px;
@@ -402,6 +397,21 @@
 				gap: 8px;
 				flex-wrap: wrap;
 				margin-top: 0.25rem;
+			}
+			.ins-shuffle-btn {
+				font-size: 13px;
+				padding: 0 4px;
+				background: none;
+				border: none;
+				cursor: pointer;
+				color: var(--text2);
+				font-family: "DM Sans", sans-serif;
+				transition: color 0.15s;
+				vertical-align: middle;
+				margin-left: 4px;
+			}
+			.ins-shuffle-btn:hover {
+				color: var(--green);
 			}
 			/* library */
 			.lib-controls {
@@ -1034,7 +1044,9 @@
 				</div>
 				<div class="inspire-grid" id="inspire-cards"></div>
 				<div class="shuffle-row">
-					<button class="ghost-btn" onclick="renderInspire()">↺ Shuffle</button>
+					<button class="ghost-btn" onclick="shuffleAllInspire()">
+						↺ Shuffle all
+					</button>
 				</div>
 			</div>
 
@@ -1072,6 +1084,11 @@
 						Collapse all
 					</button>
 				</div>
+				<div
+					class="add-chips-row"
+					id="lib-season-filter"
+					style="margin-bottom: 0.75rem"
+				></div>
 				<div id="lib-content"></div>
 			</div>
 		</div>
@@ -1158,7 +1175,7 @@
 				food: {
 					label: "Food & cooking",
 					short: "Food",
-					color: "#4caf72",
+					color: "#f0892a",
 					icon: "🍪",
 				},
 				arts: {
@@ -1253,6 +1270,8 @@
 				},
 				hideDone: true,
 				nextId: 300,
+				inspireCards: [],
+				inspireWeek: null,
 			};
 
 			// ── STATE ─────────────────────────────────────────────────────────────────────
@@ -1262,6 +1281,7 @@
 			let lastAction = null;
 			let toastTimer = null;
 			let libCatFilter = "all";
+			let libSeasonFilter = "all";
 			let expandedItems = new Set();
 			let collapsedGroups = new Set();
 			let allCollapsed = false;
@@ -1339,8 +1359,10 @@
 						}
 					}
 				}
-				// Ensure nature categoryLogs exists for older saved states
+				// Ensure fields exist for older saved states
 				if (!state.categoryLogs.nature) state.categoryLogs.nature = [];
+				if (!Array.isArray(state.inspireCards)) state.inspireCards = [];
+				if (state.inspireWeek === undefined) state.inspireWeek = null;
 				document.getElementById("hide-done-chip") &&
 					document
 						.getElementById("hide-done-chip")
@@ -1459,7 +1481,7 @@
 			// ── RENDER RINGS ──────────────────────────────────────────────────────────────
 			function renderRings() {
 				const el = document.getElementById("rings-grid");
-				const r = 24,
+				const r = 30,
 					circ = 2 * Math.PI * r;
 				el.innerHTML = CATKEYS.map((cat) => {
 					const c = CATS[cat];
@@ -1468,10 +1490,10 @@
 					const stroke = fill > 0.01 ? c.color : "#2e3f32";
 					return `<div class="ring-cell" onclick="nav('library',null,'${cat}')">
 	<div class="ring-wrap">
-		<svg width="58" height="58" viewBox="0 0 58 58">
-			<circle fill="none" stroke="#1d2b20" stroke-width="5" cx="29" cy="29" r="${r}"/>
+		<svg width="72" height="72" viewBox="0 0 72 72">
+			<circle fill="none" stroke="#1d2b20" stroke-width="5" cx="36" cy="36" r="${r}"/>
 			<circle fill="none" stroke="${stroke}" stroke-width="5" stroke-linecap="round"
-				cx="29" cy="29" r="${r}"
+				cx="36" cy="36" r="${r}"
 				stroke-dasharray="${dash} ${circ.toFixed(1)}" stroke-dashoffset="0"
 				style="transition:stroke-dasharray .4s ease"/>
 		</svg>
@@ -1557,9 +1579,8 @@
 			}
 
 			// ── INSPIRE ───────────────────────────────────────────────────────────────────
-			function renderInspire() {
+			function pickAllInspireCards() {
 				const season = currentSeason();
-				const el = document.getElementById("inspire-cards");
 				const shuffled = CATKEYS.slice().sort(() => Math.random() - 0.5);
 				const picks = [];
 				shuffled.forEach((cat) => {
@@ -1573,27 +1594,75 @@
 					if (pool.length && picks.length < 6) {
 						const p = pool[Math.floor(Math.random() * pool.length)];
 						if (!picks.find((x) => x.id === p.id))
-							picks.push({ ...p, c: CATS[cat] });
+							picks.push({ cat, id: p.id });
 					}
 				});
+				state.inspireCards = picks;
+				state.inspireWeek = weekStart();
+				scheduleSave();
+			}
+			function ensureInspireCards() {
+				if (
+					!Array.isArray(state.inspireCards) ||
+					!state.inspireCards.length ||
+					state.inspireWeek !== weekStart()
+				) {
+					pickAllInspireCards();
+				}
+			}
+			function shuffleAllInspire() {
+				pickAllInspireCards();
+				renderInspireDisplay();
+			}
+			function shuffleOneInspire(idx) {
+				const season = currentSeason();
+				const card = state.inspireCards[idx];
+				if (!card) return;
+				const usedIds = state.inspireCards.map((c) => c.id);
+				const pool = state.items.filter((i) => {
+					if (!Array.isArray(i.seasons)) i.seasons = [i.s || "any"];
+					return (
+						i.cats.includes(card.cat) &&
+						i.id !== card.id &&
+						!usedIds.includes(i.id) &&
+						(i.seasons.includes("any") || i.seasons.includes(season))
+					);
+				});
+				if (!pool.length) return;
+				const p = pool[Math.floor(Math.random() * pool.length)];
+				state.inspireCards[idx] = { cat: card.cat, id: p.id };
+				scheduleSave();
+				renderInspireDisplay();
+			}
+			function renderInspireDisplay() {
+				ensureInspireCards();
+				const el = document.getElementById("inspire-cards");
 				inspireItemIds = {};
-				if (!picks.length) {
+				const cards = state.inspireCards.filter((card) =>
+					state.items.find((i) => i.id === card.id),
+				);
+				if (!cards.length) {
 					el.innerHTML =
 						'<div class="empty">Nothing for this season yet.</div>';
 					return;
 				}
-				el.innerHTML = picks
-					.map((p, idx) => {
-						inspireItemIds[idx] = { id: p.id, cats: p.cats };
-						return `<div class="ins-card" style="border-color:${p.c.color}33">
-	<div class="ins-cat" style="color:${p.c.color}">${p.c.label}</div>
-	<div class="ins-text">${p.t}</div>
+				el.innerHTML = cards
+					.map((card, idx) => {
+						const it = state.items.find((i) => i.id === card.id);
+						if (!it) return "";
+						const c = CATS[card.cat];
+						inspireItemIds[idx] = { id: card.id, cats: it.cats };
+						if (!Array.isArray(it.seasons)) it.seasons = [it.s || "any"];
+						return `<div class="ins-card" style="border-color:${c.color}33">
+	<div class="ins-cat" style="color:${c.color}">${c.label}<button class="ins-shuffle-btn" onclick="shuffleOneInspire(${idx})" title="Try another">↺</button></div>
+	<div class="ins-text">${it.t}</div>
 	<div class="ins-footer">
-		<span style="display:flex;gap:3px;flex-wrap:wrap">${p.seasons.map((sv) => `<span class="sb ${SC[sv]}">${SL[sv]}</span>`).join("")}</span>
+		<span style="display:flex;gap:3px;flex-wrap:wrap">${it.seasons.map((sv) => `<span class="sb ${SC[sv]}">${SL[sv]}</span>`).join("")}</span>
 		<button class="ins-done-btn" id="ins-done-${idx}" onclick="inspireMarkDone(${idx})">✓ did this</button>
 	</div>
 </div>`;
 					})
+					.filter(Boolean)
 					.join("");
 			}
 			function inspireMarkDone(idx) {
@@ -1647,12 +1716,38 @@
 			}
 
 			// ── LIBRARY ───────────────────────────────────────────────────────────────────
+			function buildLibSeasonChips() {
+				const el = document.getElementById("lib-season-filter");
+				if (!el) return;
+				const opts = ["all", ...SEASONS];
+				el.innerHTML = opts
+					.map((s) => {
+						const label = s === "all" ? "All seasons" : SL[s];
+						const on = libSeasonFilter === s;
+						return `<button class="add-chip${on ? " on" : ""}"
+						style="${on ? "border-color:var(--green2);color:var(--green)" : ""}"
+						onclick="setLibSeasonFilter('${s}')">${label}</button>`;
+					})
+					.join("");
+			}
+			function setLibSeasonFilter(s) {
+				libSeasonFilter = s;
+				renderLibrary(document.querySelector(".lib-search")?.value || "");
+			}
 			function renderLibrary(search = "") {
 				const el = document.getElementById("lib-content");
+				buildLibSeasonChips();
 				const byCat = {};
 				state.items.forEach((i) => {
 					if (state.hideDone && i.done) return;
 					if (search && !i.t.toLowerCase().includes(search.toLowerCase()))
+						return;
+					if (!Array.isArray(i.seasons)) i.seasons = [i.s || "any"];
+					if (
+						libSeasonFilter !== "all" &&
+						!i.seasons.includes("any") &&
+						!i.seasons.includes(libSeasonFilter)
+					)
 						return;
 					i.cats.forEach((cat) => {
 						if (libCatFilter !== "all" && cat !== libCatFilter) return;
@@ -1667,14 +1762,11 @@
 				el.innerHTML = CATKEYS.filter((cat) => byCat[cat])
 					.map((cat) => {
 						const c = CATS[cat];
-						const allInCat = state.items.filter((i) => i.cats.includes(cat));
-						const dn = allInCat.filter((i) => i.done).length;
 						const collapsed = collapsedGroups.has(cat);
 						return `<div class="lib-group${collapsed ? " collapsed" : ""}" id="grp-${cat}">
 	<div class="lib-group-header" onclick="toggleGroup('${cat}')">
 		<div class="lib-dot" style="background:${c.color}"></div>
 		<div class="lib-group-name">${c.label}</div>
-		<div class="lib-group-count">${dn}/${allInCat.length} done</div>
 		<button class="lib-collapse-btn">▾</button>
 	</div>
 	<div class="lib-group-items">
@@ -1940,7 +2032,7 @@
 					if (catFilter !== undefined) libCatFilter = catFilter;
 					renderLibrary();
 				}
-				if (panel === "inspire") renderInspire();
+				if (panel === "inspire") renderInspireDisplay();
 				if (panel === "home") {
 					renderRings();
 					renderGoals();
