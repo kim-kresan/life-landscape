@@ -924,6 +924,11 @@
 				Life Landscape
 				<span id="weekly-quote"></span>
 				<span class="sync-dot" id="sync-dot" title="Sync status"></span>
+		<button id="sync-btn" onclick="forceSave()" title="Force sync" style="
+			background:none;border:none;cursor:pointer;color:var(--text2);
+			font-size:13px;padding:2px 4px;font-family:'DM Sans',sans-serif;
+			transition:color .15s;margin-left:2px;
+		">↺</button>
 			</div>
 
 			<!-- SETUP BANNER (shown until API URL is saved) -->
@@ -1214,13 +1219,18 @@
 			async function remoteSave(data) {
 				if (!apiUrl) return;
 				setSyncDot("saving");
+				// Always write to local cache immediately — this is our safety net
+				localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
 				try {
-					const encoded = encodeURIComponent(JSON.stringify(data));
-					const r = await fetch(apiUrl + "?action=save&data=" + encoded);
+					const body = "action=save&data=" + encodeURIComponent(JSON.stringify(data));
+					const r = await fetch(apiUrl, {
+						method: "POST",
+						headers: { "Content-Type": "application/x-www-form-urlencoded" },
+						body: body,
+					});
 					const j = await r.json();
 					if (j.ok) {
 						setSyncDot("saved");
-						localStorage.setItem(LS_CACHE_KEY, JSON.stringify(data));
 					} else {
 						setSyncDot("error");
 					}
@@ -1231,7 +1241,14 @@
 
 			function scheduleSave() {
 				clearTimeout(saveTimer);
-				saveTimer = setTimeout(() => remoteSave(state), 800);
+				// Write to local cache immediately so progress is never lost
+				localStorage.setItem(LS_CACHE_KEY, JSON.stringify(state));
+				saveTimer = setTimeout(() => remoteSave(state), 1200);
+			}
+
+			async function forceSave() {
+				clearTimeout(saveTimer);
+				await remoteSave(state);
 			}
 
 			// ── INIT ──────────────────────────────────────────────────────────────────────
