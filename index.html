@@ -1414,6 +1414,7 @@
 					Friday: [],
 					Saturday: [],
 					Sunday: [],
+					Upcoming: [],
 				},
 			};
 
@@ -1441,6 +1442,7 @@
 				"Sunday",
 			];
 			let editingWeekTaskId = null;
+			const UPCOMING_KEY = "Upcoming";
 			// add-form multi-select state
 			let addCatSel = new Set(["food"]);
 			let addSeasonSel = new Set(["any"]);
@@ -1522,6 +1524,8 @@
 				WEEK_DAYS.forEach((d) => {
 					if (!Array.isArray(state.weekTasks[d])) state.weekTasks[d] = [];
 				});
+				if (!Array.isArray(state.weekTasks[UPCOMING_KEY]))
+					state.weekTasks[UPCOMING_KEY] = [];
 				document.getElementById("hide-done-chip") &&
 					document
 						.getElementById("hide-done-chip")
@@ -1742,12 +1746,45 @@
 			function renderWeekTodo() {
 				const el = document.getElementById("week-todo");
 				if (!el) return;
-				el.innerHTML = WEEK_DAYS.map((day) => {
-					const tasks = state.weekTasks[day] || [];
-					const rows = tasks
-						.map((t) => {
-							if (editingWeekTaskId === t.id) {
-								return `
+				const dayBlocks = WEEK_DAYS.map((day) => renderWeekBlock(day)).join("");
+				const upcomingBlock = `
+				<hr class="week-todo-divider" />
+				<div class="week-day-block">
+					<div class="week-day-title">Upcoming</div>
+					${renderWeekTaskRows(UPCOMING_KEY)}
+					<div class="week-add-row">
+						<input class="week-add-inp" id="week-add-${UPCOMING_KEY}" type="text" placeholder="Add a task..."
+							onkeydown="if (event.key === 'Enter') addWeekTask('${UPCOMING_KEY}');" />
+						<button class="week-add-btn" onclick="addWeekTask('${UPCOMING_KEY}')">Add</button>
+					</div>
+				</div>`;
+				el.innerHTML = dayBlocks + upcomingBlock;
+				if (editingWeekTaskId !== null) {
+					const input = document.getElementById(`week-edit-${editingWeekTaskId}`);
+					if (input) {
+						input.focus();
+						input.setSelectionRange(input.value.length, input.value.length);
+					}
+				}
+			}
+			function renderWeekBlock(day) {
+				return `
+				<div class="week-day-block">
+					<div class="week-day-title">${day}</div>
+					${renderWeekTaskRows(day)}
+					<div class="week-add-row">
+						<input class="week-add-inp" id="week-add-${day}" type="text" placeholder="Add a task..."
+							onkeydown="if (event.key === 'Enter') addWeekTask('${day}');" />
+						<button class="week-add-btn" onclick="addWeekTask('${day}')">Add</button>
+					</div>
+				</div>`;
+			}
+			function renderWeekTaskRows(day) {
+				const tasks = state.weekTasks[day] || [];
+				return tasks
+					.map((t) => {
+						if (editingWeekTaskId === t.id) {
+							return `
 					<div class="week-task-row">
 						<button class="week-task-check${t.done ? " checked" : ""}" onclick="toggleWeekTask('${day}', ${t.id})"></button>
 						<input class="week-task-input" id="week-edit-${t.id}" type="text" value="${escapeAttr(t.text)}"
@@ -1755,35 +1792,15 @@
 							onblur="saveWeekTaskEdit('${day}', ${t.id}, this.value)" />
 						<button class="week-task-del" onclick="deleteWeekTask('${day}', ${t.id})" title="Delete">✕</button>
 					</div>`;
-							}
-							return `
+						}
+						return `
 					<div class="week-task-row">
 						<button class="week-task-check${t.done ? " checked" : ""}" onclick="toggleWeekTask('${day}', ${t.id})"></button>
 						<div class="week-task-text${t.done ? " done" : ""}" onclick="startWeekTaskEdit(${t.id})">${escapeHtml(t.text)}</div>
 						<button class="week-task-del" onclick="deleteWeekTask('${day}', ${t.id})" title="Delete">✕</button>
 					</div>`;
-						})
-						.join("");
-					return `
-				<div class="week-day-block">
-					<div class="week-day-title">${day}</div>
-					${rows}
-					<div class="week-add-row">
-						<input class="week-add-inp" id="week-add-${day}" type="text" placeholder="Add a task..."
-							onkeydown="if (event.key === 'Enter') addWeekTask('${day}');" />
-						<button class="week-add-btn" onclick="addWeekTask('${day}')">Add</button>
-					</div>
-				</div>`;
-				}).join("");
-				if (editingWeekTaskId !== null) {
-					const input = document.getElementById(
-						`week-edit-${editingWeekTaskId}`,
-					);
-					if (input) {
-						input.focus();
-						input.setSelectionRange(input.value.length, input.value.length);
-					}
-				}
+					})
+					.join("");
 			}
 			function escapeHtml(s) {
 				return String(s ?? "").replace(
@@ -2019,7 +2036,6 @@
 					if (!Array.isArray(i.seasons)) i.seasons = [i.s || "any"];
 					if (
 						libSeasonFilter !== "all" &&
-						!i.seasons.includes("any") &&
 						!i.seasons.includes(libSeasonFilter)
 					)
 						return;
@@ -2395,9 +2411,6 @@
 				"I'm just here to witness the sunshine.",
 				"Find a place where you won't do very much harm and stand in it for all you are worth, facing the sun.",
 				"Applesauce is fucking imperative.",
-				"Trust yourself to know enough to be alive.",
-				"Genius is what happens automatically when you lie flush against the current of yourself.",
-				"Intelligence relates to the clarity of our interaction with reality.",
 			];
 			(function setWeeklyQuote() {
 				const now = new Date();
