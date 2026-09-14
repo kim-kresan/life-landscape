@@ -326,6 +326,134 @@
 			.del-x:hover {
 				color: var(--pink);
 			}
+			/* this week — todo list */
+			.week-todo {
+				margin-bottom: 1.5rem;
+			}
+			.week-day-block {
+				margin-bottom: 1.1rem;
+			}
+			.week-day-title {
+				font-size: 15px;
+				font-weight: 700;
+				color: var(--pink);
+				margin-bottom: 6px;
+			}
+			.week-task-row {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				padding: 5px 0;
+			}
+			.week-task-check {
+				width: 20px;
+				height: 20px;
+				flex-shrink: 0;
+				border: 1.5px solid var(--text2);
+				border-radius: 5px;
+				background: none;
+				cursor: pointer;
+				position: relative;
+				padding: 0;
+			}
+			.week-task-check.checked {
+				background: var(--green2);
+				border-color: var(--green2);
+			}
+			.week-task-check.checked::after {
+				content: "✓";
+				position: absolute;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 13px;
+				color: #fff;
+			}
+			.week-task-text {
+				flex: 1;
+				font-size: 15px;
+				color: var(--text0);
+				cursor: text;
+				padding: 4px 2px;
+				border-radius: 4px;
+				border: 1px solid transparent;
+				word-break: break-word;
+			}
+			.week-task-text.done {
+				color: var(--text2);
+				text-decoration: line-through;
+			}
+			.week-task-text:hover {
+				border-color: var(--border);
+			}
+			.week-task-input {
+				flex: 1;
+				font-size: 15px;
+				color: var(--text0);
+				background: var(--bg1);
+				border: 1px solid var(--green2);
+				border-radius: 4px;
+				padding: 4px 6px;
+				font-family: "DM Sans", sans-serif;
+				width: 100%;
+			}
+			.week-task-del {
+				background: none;
+				border: none;
+				cursor: pointer;
+				color: var(--text3);
+				font-size: 15px;
+				padding: 2px 4px;
+				line-height: 1;
+				transition: color 0.1s;
+				flex-shrink: 0;
+			}
+			.week-task-del:hover {
+				color: var(--pink);
+			}
+			.week-add-row {
+				display: flex;
+				gap: 6px;
+				margin-top: 4px;
+			}
+			.week-add-inp {
+				flex: 1;
+				padding: 8px 10px;
+				font-size: 14px;
+				border: 1px solid var(--border);
+				border-radius: var(--r-md);
+				background: var(--bg1);
+				color: var(--text0);
+				font-family: "DM Sans", sans-serif;
+			}
+			.week-add-inp::placeholder {
+				color: var(--text3);
+			}
+			.week-add-inp:focus {
+				outline: none;
+				border-color: var(--green2);
+			}
+			.week-add-btn {
+				padding: 8px 12px;
+				font-size: 13px;
+				border: 1px solid var(--green2);
+				border-radius: var(--r-md);
+				background: var(--bg2);
+				cursor: pointer;
+				color: var(--green);
+				font-family: "DM Sans", sans-serif;
+				white-space: nowrap;
+			}
+			.week-add-btn:hover {
+				background: var(--green2);
+				color: #fff;
+			}
+			.week-todo-divider {
+				border: none;
+				border-top: 1px solid var(--border);
+				margin: 0.25rem 0 1.25rem;
+			}
 			/* inspire */
 			.inspire-grid {
 				display: grid;
@@ -1037,8 +1165,13 @@
 				</div>
 			</div>
 
-			<!-- INSPIRE -->
+			<!-- INSPIRE / THIS WEEK -->
 			<div id="inspire" class="panel">
+				<div class="section-header" style="margin-bottom: 12px">
+					<div class="section-title">This week</div>
+				</div>
+				<div class="week-todo" id="week-todo"></div>
+				<hr class="week-todo-divider" />
 				<div class="section-header" style="margin-bottom: 12px">
 					<div class="section-title">What could you do this week?</div>
 				</div>
@@ -1098,7 +1231,7 @@
 				<span class="ni">◎</span>Home
 			</button>
 			<button class="nav-btn" onclick="nav('inspire', this)">
-				<span class="ni">✦</span>Inspire
+				<span class="ni">✦</span>This week
 			</button>
 			<button class="nav-btn" onclick="nav('library', this)">
 				<span class="ni">≡</span>Library
@@ -1273,6 +1406,15 @@
 				inspireCards: [],
 				inspireWeek: null,
 				inspireDone: [],
+				weekTasks: {
+					Monday: [],
+					Tuesday: [],
+					Wednesday: [],
+					Thursday: [],
+					Friday: [],
+					Saturday: [],
+					Sunday: [],
+				},
 			};
 
 			// ── STATE ─────────────────────────────────────────────────────────────────────
@@ -1289,6 +1431,16 @@
 			let goalFreqTemp = 3;
 			let goalItemSel = new Set();
 			let inspireItemIds = {};
+			const WEEK_DAYS = [
+				"Monday",
+				"Tuesday",
+				"Wednesday",
+				"Thursday",
+				"Friday",
+				"Saturday",
+				"Sunday",
+			];
+			let editingWeekTaskId = null;
 			// add-form multi-select state
 			let addCatSel = new Set(["food"]);
 			let addSeasonSel = new Set(["any"]);
@@ -1365,6 +1517,11 @@
 				if (!Array.isArray(state.inspireCards)) state.inspireCards = [];
 				if (state.inspireWeek === undefined) state.inspireWeek = null;
 				if (!Array.isArray(state.inspireDone)) state.inspireDone = [];
+				if (!state.weekTasks || typeof state.weekTasks !== "object")
+					state.weekTasks = {};
+				WEEK_DAYS.forEach((d) => {
+					if (!Array.isArray(state.weekTasks[d])) state.weekTasks[d] = [];
+				});
 				document.getElementById("hide-done-chip") &&
 					document
 						.getElementById("hide-done-chip")
@@ -1372,6 +1529,7 @@
 				buildAddChips();
 				renderRings();
 				renderGoals();
+				renderWeekTodo();
 			}
 
 			function saveApiUrl() {
@@ -1578,6 +1736,111 @@
 				scheduleSave();
 				renderGoals();
 				renderRings();
+			}
+
+			// ── THIS WEEK TODO ────────────────────────────────────────────────────────────
+			function renderWeekTodo() {
+				const el = document.getElementById("week-todo");
+				if (!el) return;
+				el.innerHTML = WEEK_DAYS.map((day) => {
+					const tasks = state.weekTasks[day] || [];
+					const rows = tasks
+						.map((t) => {
+							if (editingWeekTaskId === t.id) {
+								return `
+					<div class="week-task-row">
+						<button class="week-task-check${t.done ? " checked" : ""}" onclick="toggleWeekTask('${day}', ${t.id})"></button>
+						<input class="week-task-input" id="week-edit-${t.id}" type="text" value="${escapeAttr(t.text)}"
+							onkeydown="if (event.key === 'Enter') { saveWeekTaskEdit('${day}', ${t.id}, this.value); } else if (event.key === 'Escape') { editingWeekTaskId = null; renderWeekTodo(); }"
+							onblur="saveWeekTaskEdit('${day}', ${t.id}, this.value)" />
+						<button class="week-task-del" onclick="deleteWeekTask('${day}', ${t.id})" title="Delete">✕</button>
+					</div>`;
+							}
+							return `
+					<div class="week-task-row">
+						<button class="week-task-check${t.done ? " checked" : ""}" onclick="toggleWeekTask('${day}', ${t.id})"></button>
+						<div class="week-task-text${t.done ? " done" : ""}" onclick="startWeekTaskEdit(${t.id})">${escapeHtml(t.text)}</div>
+						<button class="week-task-del" onclick="deleteWeekTask('${day}', ${t.id})" title="Delete">✕</button>
+					</div>`;
+						})
+						.join("");
+					return `
+				<div class="week-day-block">
+					<div class="week-day-title">${day}</div>
+					${rows}
+					<div class="week-add-row">
+						<input class="week-add-inp" id="week-add-${day}" type="text" placeholder="Add a task..."
+							onkeydown="if (event.key === 'Enter') addWeekTask('${day}');" />
+						<button class="week-add-btn" onclick="addWeekTask('${day}')">Add</button>
+					</div>
+				</div>`;
+				}).join("");
+				if (editingWeekTaskId !== null) {
+					const input = document.getElementById(
+						`week-edit-${editingWeekTaskId}`,
+					);
+					if (input) {
+						input.focus();
+						input.setSelectionRange(input.value.length, input.value.length);
+					}
+				}
+			}
+			function escapeHtml(s) {
+				return String(s ?? "").replace(
+					/[&<>"']/g,
+					(c) =>
+						({
+							"&": "&amp;",
+							"<": "&lt;",
+							">": "&gt;",
+							'"': "&quot;",
+							"'": "&#39;",
+						})[c],
+				);
+			}
+			function escapeAttr(s) {
+				return escapeHtml(s);
+			}
+			function addWeekTask(day) {
+				const inp = document.getElementById(`week-add-${day}`);
+				if (!inp) return;
+				const text = inp.value.trim();
+				if (!text) return;
+				if (!Array.isArray(state.weekTasks[day])) state.weekTasks[day] = [];
+				state.weekTasks[day].push({ id: state.nextId++, text, done: false });
+				inp.value = "";
+				scheduleSave();
+				renderWeekTodo();
+				const next = document.getElementById(`week-add-${day}`);
+				if (next) next.focus();
+			}
+			function toggleWeekTask(day, id) {
+				const t = (state.weekTasks[day] || []).find((x) => x.id === id);
+				if (!t) return;
+				t.done = !t.done;
+				scheduleSave();
+				renderWeekTodo();
+			}
+			function deleteWeekTask(day, id) {
+				if (!Array.isArray(state.weekTasks[day])) return;
+				state.weekTasks[day] = state.weekTasks[day].filter((x) => x.id !== id);
+				if (editingWeekTaskId === id) editingWeekTaskId = null;
+				scheduleSave();
+				renderWeekTodo();
+			}
+			function startWeekTaskEdit(id) {
+				editingWeekTaskId = id;
+				renderWeekTodo();
+			}
+			function saveWeekTaskEdit(day, id, value) {
+				const t = (state.weekTasks[day] || []).find((x) => x.id === id);
+				if (t) {
+					const trimmed = value.trim();
+					if (trimmed) t.text = trimmed;
+				}
+				editingWeekTaskId = null;
+				scheduleSave();
+				renderWeekTodo();
 			}
 
 			// ── INSPIRE ───────────────────────────────────────────────────────────────────
@@ -2043,7 +2306,10 @@
 					if (catFilter !== undefined) libCatFilter = catFilter;
 					renderLibrary();
 				}
-				if (panel === "inspire") renderInspireDisplay();
+				if (panel === "inspire") {
+					renderInspireDisplay();
+					renderWeekTodo();
+				}
 				if (panel === "home") {
 					renderRings();
 					renderGoals();
@@ -2129,6 +2395,9 @@
 				"I'm just here to witness the sunshine.",
 				"Find a place where you won't do very much harm and stand in it for all you are worth, facing the sun.",
 				"Applesauce is fucking imperative.",
+				"Trust yourself to know enough to be alive.",
+				"Genius is what happens automatically when you lie flush against the current of yourself.",
+				"Intelligence relates to the clarity of our interaction with reality.",
 			];
 			(function setWeeklyQuote() {
 				const now = new Date();
